@@ -22,6 +22,7 @@ async function main() {
   const slotsPerEpoch = Number(process.env.SLOTS_PER_EPOCH);
   const commissionRate = Number(process.env.COMMISSION_RATE);
   const transactionFee = Number(process.env.SEND_TRANSACTION_FEE) || 0;
+  const outputDirectory: string = process.env.OUTPUT_DIRECTORY || "./src/data";
   const senderKeys: keypair = {
     privateKey: process.env.PRIVATE_KEY || "",
     publicKey: process.env.PUBLIC_KEY || ""
@@ -59,26 +60,31 @@ async function main() {
   console.log(`The Total Payout is actually: ${totalPayout} nm or ${totalPayout / 1000000000} mina`)
 
   const runDateTime = new Date();
-  const payoutTransactionsFileName = generateOutputFileName("payout_transactions", runDateTime, minimumHeight, maximumHeight);
 
-  fs.writeFile(payoutTransactionsFileName, JSON.stringify(payouts), function (err: any) {
+  fs.mkdir(outputDirectory, { recursive: true }, (err) => {
     if (err) throw err;
-    console.log(`wrote payouts transactions to ${payoutTransactionsFileName}`);
-  });
 
-  const payoutDetailsFileName = generateOutputFileName("payout_details", runDateTime, minimumHeight, maximumHeight);
-  fs.writeFile(payoutDetailsFileName, JSON.stringify(storePayout), function (err: any) {
-    if (err) throw err;
-    console.log(`wrote payout details to ${payoutDetailsFileName}`);
-  });
+    const payoutTransactionsFileName = generateOutputFileName("payout_transactions", outputDirectory, runDateTime, minimumHeight, maximumHeight);
 
-  const payoutBatchFileName = generateOutputFileName("payout_batch", runDateTime, minimumHeight, maximumHeight);
-  fs.writeFile(payoutBatchFileName, payoutFileString, function (err: any) {
-    if (err) throw err;
-    console.log(`wrote payout details to ${payoutBatchFileName}`);
+    fs.writeFile(payoutTransactionsFileName, JSON.stringify(payouts), function (err: any) {
+      if (err) throw err;
+      console.log(`wrote payouts transactions to ${payoutTransactionsFileName}`);
+    });
+  
+    const payoutDetailsFileName = generateOutputFileName("payout_details", outputDirectory, runDateTime, minimumHeight, maximumHeight);
+    fs.writeFile(payoutDetailsFileName, JSON.stringify(storePayout), function (err: any) {
+      if (err) throw err;
+      console.log(`wrote payout details to ${payoutDetailsFileName}`);
+    });
+  
+    const payoutBatchFileName = generateOutputFileName("payout_batch", outputDirectory, runDateTime, minimumHeight, maximumHeight);
+    fs.writeFile(payoutBatchFileName, payoutFileString, function (err: any) {
+      if (err) throw err;
+      console.log(`wrote payout details to ${payoutBatchFileName}`);
+    });
+  
+    signTransactionsToSend(payouts, senderKeys, outputDirectory);
   });
-
-  signTransactionsToSend(payouts, senderKeys);
 }
 
 async function determineLastBlockHeightToProcess(maximumHeight: number, minimumConfirmations: number): Promise<number> {
@@ -95,8 +101,8 @@ async function determineLastBlockHeightToProcess(maximumHeight: number, minimumC
   return maximum;
 }
 
-function generateOutputFileName(identifier: string, runDateTime: Date, minimumHeight: number, maximumHeight: number) {
-  return `./src/data/${identifier}_${longDateString(runDateTime)}_${minimumHeight}_${maximumHeight}.json`;
+function generateOutputFileName(identifier: string, outputDirectory: string, runDateTime: Date, minimumHeight: number, maximumHeight: number) {
+  return `${outputDirectory}/${identifier}_${longDateString(runDateTime)}_${minimumHeight}_${maximumHeight}.json`;
 }
 
 function longDateString(d: Date) {
