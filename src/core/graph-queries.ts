@@ -37,9 +37,9 @@ export async function sendSignedPayment(payment: signed<payment>) {
           validUntil: "${payment.payload.validUntil}"
           memo: "${payment.payload.memo}"
         }
-        signature: { 
-          field: "${payment.signature.field}", 
-          scalar: "${payment.signature.scalar}" 
+        signature: {
+          field: "${payment.signature.field}",
+          scalar: "${payment.signature.scalar}"
         }
       ) {
         payment {
@@ -55,6 +55,7 @@ export async function sendSignedPayment(payment: signed<payment>) {
             publicKey
           }
           isDelegation
+          id
         }
       }
     }
