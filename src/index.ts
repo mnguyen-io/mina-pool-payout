@@ -39,8 +39,6 @@ async function main() {
   // get the blocks from archive db
   const blocks = await getBlocks(stakingPoolPublicKey, minimumHeight, maximumHeight);
 
-  let paymentIds: string[] = [];
-
   let payouts: PayoutTransaction[] = [];
   let storePayout: PayoutDetails[] = [];
   const ledgerHashes = [...new Set(blocks.map(block => block.stakingledgerhash))];
@@ -99,12 +97,10 @@ async function main() {
     if (args.payouthash) {
       console.log(`### Processing signed payout for hash ${args.payouthash}...`)
       if (args.payouthash == payoutHash) {
-        let payment: transactionResult = JSON.parse(sendSignedTransactions(transactions, senderKeys, payoutMemo));
-        paymentIds.push(payment.id);
-
+        sendSignedTransactions(transactions, senderKeys, payoutMemo);
         const paidblockStream = fs.createWriteStream(`${__dirname}/data/.paidblocks`, { flags: 'a' });
         blocks.forEach((block) => {
-          paidblockStream.write(`${block.blockheight}|${block.statehash}|${paymentIds}\n`);
+          paidblockStream.write(`${block.blockheight}|${block.statehash}\n`);
         });
         paidblockStream.end();
       } else {

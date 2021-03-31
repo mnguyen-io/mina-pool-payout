@@ -14,6 +14,7 @@ export async function sendSignedTransactions(payoutsToSign: PayoutTransaction[],
                 try {
                     const signedPayment = signPayment(paymentTransaction, keys);
                     const data = await sendSignedPayment(signedPayment);
+                    const paymentId = JSON.parse(data)
                     // Writes them to a file by nonce for broadcasting
                     fs.writeFileSync("./src/data/" + nonce + ".json", JSON.stringify(data));
                     nonce++;
@@ -23,5 +24,5 @@ export async function sendSignedTransactions(payoutsToSign: PayoutTransaction[],
                 resolve();
             }, 5000); //TODO: Move timeout to .env
         });
-    }, Promise.resolve());
+    }, Promise.resolve(paymentId));
 };
